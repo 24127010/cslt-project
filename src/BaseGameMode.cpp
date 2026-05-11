@@ -75,7 +75,7 @@ void BaseGameMode::runGame() {
             if (!gameEnded) {
                 player.handleInput(sf::Keyboard::A, sf::Keyboard::D,
                                    sf::Keyboard::W, sf::Keyboard::J,
-                                   sf::Keyboard::K, true);
+                                   sf::Keyboard::K, sf::Keyboard::Q, true);
             }
         }
 
@@ -86,13 +86,26 @@ void BaseGameMode::runGame() {
 
             bool isColliding = player.getBounds().intersects(bot.getBounds());
 
-            if (isColliding && player.isCurrentlyAttacking()) {
-                bot.takeDamage(8);
-                bot.setHit();
-            }
-            if (isColliding && bot.isCurrentlyAttacking()) {
-                player.takeDamage(8);
-                player.setHit();
+            if (isColliding) {
+                // Nếu Player tấn công Bot
+                if (player.isCurrentlyAttacking()) {
+                    if (bot.getCurrentAction() == Player::ActionType::Parry) {
+                        player.setHit(); // Player bị bật ra vì Bot đang Parry
+                    } else {
+                        bot.takeDamage(10);
+                        bot.setHit();
+                    }
+                }
+
+                // Nếu Bot tấn công Player
+                if (bot.isCurrentlyAttacking()) {
+                    if (player.getCurrentAction() == Player::ActionType::Parry) {
+                        bot.setHit(); // Bot bị khựng lại khi Player Parry thành công
+                    } else {
+                        player.takeDamage(10);
+                        player.setHit();
+                    }
+                }
             }
 
             playerHealthBar.setSize(sf::Vector2f(player.getHealth(), 20));
